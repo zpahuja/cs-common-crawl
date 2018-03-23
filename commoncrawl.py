@@ -29,7 +29,9 @@ index_list = INDEX_LIST
 # parse the command line arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--domain", required=True, help="The domain to target eg. cnn.com")
+ap.add_argument("-r", "--resume", help="Resume from last session or re-run", action='store_true')
 args = vars(ap.parse_args())
+print(args)
 
 # read list of domains from file
 if args['domain'].endswith(('.csv', '.txt')):
@@ -78,7 +80,7 @@ def search_domain(domain):
                 url = record['url']
                 if not url.endswith((file_exts)) and url not in seen_urls:
                     seen_urls[record['url']] = True
-                    record_list.append(record)
+                    record_list.append((record, index_list.index(index)))
 
             sys.stderr.write("[*] Found %d records\n" % len(records))
 
@@ -144,14 +146,51 @@ def format_filename(s):
     filename = filename.replace(' ','_')
     return filename
 
+
+def store_session_info(key, val):
+    """
+    Writes val to hidden file.
+    """
+    file = open('.session.' + key, 'w')
+    file.write(val)
+    file.close()
+
+
+def get_session_info(key):
+    """
+    Reads session info from hidden file.
+    """
+    file = open('.session.' + key, 'r')
+    val = file.readline()
+    file.close()
+    return val
+
+
 """
 For all indices, crawl domain and download HTML.
 """
+
+# setup output data directory
 if not os.path.exists(OUT_DIRECTORY):
     os.makedirs(OUT_DIRECTORY)
 
+# config resume from last session
+resume_from_last_run = args['resume']
+if resume_from_last_run:
+    prev_domain = get_session_info('domain')
+    prev_index = get_session_info('index')
+    resume_domain = True
 
 for domain in domains:
+    if resume_from_last_run and resume_domain:
+        if domain == prev_domain:
+            resume_domain = False
+        else:
+            continue
+
+    # keep track of current session domain
+    store_session_info('domain', domain)
+
     record_list = search_domain(domain)
 
     domain_data_dir = os.path.join('data', format_filename(domain))
@@ -163,10 +202,26 @@ for domain in domains:
         os.makedirs(os.path.join(domain_data_dir, 'text'))
 
     # write record URLs in domain
-    url_fp = open(os.path.join(domain_data_dir, 'URLS.csv'), "w")
-    url_fp.write('url,html filepath, markdown filepath, text filepath\n')
+    url_filepath = os.path.join(domain_data_dir, 'URLS.csv')
+    url_fp = open(url_filepath, "a")
+    # write header to URL file if file is empty
+    if os.stat(url_filepath).st_size == 0:
+        url_fp.write('url,html filepath, markdown filepath, text filepath\n')
 
-    for record in record_list:
+    curr_index_pos = -1
+    for record, index_pos in record_list:
+        # if resume from last run, then skip records until index_pos is same as prev_index
+        if resume_from_last_run and index_pos < prev_index:
+            continue
+        else:
+            sys.stderr.write("[**] Resuming from last run with domain %s and index %s" % (domain, index))
+            resume_from_last_run = False
+
+        # keep track of current session domain
+        if curr_index_pos != index_pos:
+            curr_index_pos = index_pos
+            store_session_info('index', index_pos)
+
         html_content = download_page(record)
         if html_content != "":
             record_filename = format_filename(record['url'])
@@ -181,7 +236,10 @@ for domain in domains:
             if not record_markdown_filepath.endswith('.md'):
                 record_markdown_filepath += '.md'
             fp = open(record_markdown_filepath, "w")
-            fp.write(html2text.html2text(html_content))
+            try:
+                fp.write(html2text.html2text(html_content))
+            except:
+                sys.stderr.write("[***] ERROR: Failed to write markdown for page %s\n" % record['url'])
             fp.close()
 
             record_text_filepath = os.path.join(domain_data_dir, 'text', record_filename)
