@@ -45,7 +45,7 @@ else:
 
 # read list of file extensions to filter
 file_exts = []
-with open('file-extensions.txt', 'rb') as csvfile:
+with open('files/filtered-file-extensions-list.txt', 'rb') as csvfile:
     csv_reader = csv.reader(csvfile, delimiter=',')
     for row in csv_reader:
         file_exts.append(row[0])
