@@ -67,6 +67,7 @@ def search_domain(domain):
         cc_url = "http://index.commoncrawl.org/CC-MAIN-%s-index?" % index
         cc_url += "url=%s&matchType=domain&output=json" % domain
 
+        print cc_url
         response = requests.get(cc_url)
 
         if response.status_code == 200:
@@ -209,21 +210,21 @@ for domain in domains:
     curr_index_pos = -1
     for record, index_pos in record_list:
         # if resume from last run, then skip records until index_pos is same as prev_index
-        if resume_from_last_run:
-            if index_pos < prev_index:
-                continue
-            else :
-                sys.stderr.write("[**] Resuming from last run with domain %s and index %s" % (domain, index))
-                resume_from_last_run = False
+        if resume_from_last_run and index_pos < prev_index:
+            print ("[***] DEBUG index position: %d and previous index from last run: %d" % (index_pos, prev_index))
+            continue
+        else:
+            sys.stderr.write("[**] Resuming from last run with domain %s and index %s" % (domain, index))
+            resume_from_last_run = False
 
         # keep track of current session domain
         if curr_index_pos != index_pos:
             curr_index_pos = index_pos
-            store_session_info('index', index_pos)
+            store_session_info('index', curr_index_pos)
 
         html_content = download_page(record)
         if html_content != "":
-            print(html_content)
+            # print(html_content)
             record_filename = format_filename(record['url'])
             record_html_filepath = os.path.join(domain_data_dir, 'html', record_filename)
             if not record_html_filepath.endswith('.html'):
