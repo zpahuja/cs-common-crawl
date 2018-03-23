@@ -45,7 +45,7 @@ else:
 
 # read list of file extensions to filter
 file_exts = []
-with open('files/filtered-file-extensions-list.txt', 'rb') as csvfile:
+with open('file-extensions.txt', 'rb') as csvfile:
     csv_reader = csv.reader(csvfile, delimiter=',')
     for row in csv_reader:
         file_exts.append(row[0])
@@ -118,16 +118,16 @@ def download_page(record):
     if len(data):
         try:
             warc, header, response = data.strip().split('\r\n\r\n', 2)
+            status_code = int(header.split('\n', 1)[0].split()[1])
+            if status_code == 200:
+                sys.stderr.write("[**] Retrieved %d bytes from %s\n" % (len(response), record['url']))
+                return response
+
+            else:
+                sys.stderr.write("[**] ERROR: Page %s returned with status code %d.\n" % (record['url'], status_code))
+                return ""
         except:
             pass
-
-    status_code = int(header.split('\n', 1)[0].split()[1])
-    if status_code == 200:
-        sys.stderr.write("[**] Retrieved %d bytes from %s\n" % (len(response), record['url']))
-        return response
-    else:
-        sys.stderr.write("[**] ERROR: Page %s returned with status code %d.\n" % (record['url'], status_code))
-        return ""
 
 
 def format_filename(s):
