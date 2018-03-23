@@ -31,7 +31,6 @@ ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--domain", required=True, help="The domain to target eg. cnn.com")
 ap.add_argument("-r", "--resume", help="Resume from last session or re-run", action='store_true')
 args = vars(ap.parse_args())
-print(args)
 
 # read list of domains from file
 if args['domain'].endswith(('.csv', '.txt')):
@@ -69,7 +68,6 @@ def search_domain(domain):
         cc_url += "url=%s&matchType=domain&output=json" % domain
 
         response = requests.get(cc_url)
-        # sys.stderr.write("[*] Index # %s query returned with status code %d records\n" % (index, response.status_code))
 
         if response.status_code == 200:
 
@@ -161,7 +159,7 @@ def get_session_info(key):
     Reads session info from hidden file.
     """
     file = open('.session.' + key, 'r')
-    val = file.readline()
+    val = file.readline().rstrip('\n')
     file.close()
     return val
 
@@ -211,11 +209,12 @@ for domain in domains:
     curr_index_pos = -1
     for record, index_pos in record_list:
         # if resume from last run, then skip records until index_pos is same as prev_index
-        if resume_from_last_run and index_pos < prev_index:
-            continue
-        else:
-            sys.stderr.write("[**] Resuming from last run with domain %s and index %s" % (domain, index))
-            resume_from_last_run = False
+        if resume_from_last_run:
+            if index_pos < prev_index:
+                continue
+            else :
+                sys.stderr.write("[**] Resuming from last run with domain %s and index %s" % (domain, index))
+                resume_from_last_run = False
 
         # keep track of current session domain
         if curr_index_pos != index_pos:
@@ -224,6 +223,7 @@ for domain in domains:
 
         html_content = download_page(record)
         if html_content != "":
+            print(html_content)
             record_filename = format_filename(record['url'])
             record_html_filepath = os.path.join(domain_data_dir, 'html', record_filename)
             if not record_html_filepath.endswith('.html'):
