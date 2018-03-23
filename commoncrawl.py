@@ -129,6 +129,8 @@ def download_page(record):
         except:
             pass
 
+    return ""
+
 
 def format_filename(s):
     """
