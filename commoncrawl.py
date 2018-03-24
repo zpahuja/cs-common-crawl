@@ -67,7 +67,6 @@ def search_domain(domain):
         cc_url = "http://index.commoncrawl.org/CC-MAIN-%s-index?" % index
         cc_url += "url=%s&matchType=domain&output=json" % domain
 
-        print cc_url
         response = requests.get(cc_url)
 
         if response.status_code == 200:
@@ -151,7 +150,7 @@ def store_session_info(key, val):
     Writes val to hidden file.
     """
     file = open('.session.' + key, 'w')
-    file.write(val)
+    file.write(str(val))
     file.close()
 
 
@@ -223,7 +222,6 @@ for domain in domains:
             store_session_info('index', curr_index_pos)
 
         html_content = download_page(record)
-        print (record['url'], html_content)
 
         if html_content != "":
             record_filename = format_filename(record['url'])
