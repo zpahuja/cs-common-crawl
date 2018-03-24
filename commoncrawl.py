@@ -177,7 +177,7 @@ if not os.path.exists(OUT_DIRECTORY):
 resume_from_last_run = args['resume']
 if resume_from_last_run:
     prev_domain = get_session_info('domain')
-    prev_index = get_session_info('index')
+    prev_index = int(get_session_info('index'))
     resume_domain = True
 
 for domain in domains:
@@ -214,7 +214,7 @@ for domain in domains:
             print ("[***] DEBUG index position: %d and previous index from last run: %d" % (index_pos, prev_index))
             continue
         else:
-            sys.stderr.write("[**] Resuming from last run with domain %s and index %s" % (domain, index))
+            sys.stderr.write("[**] Resuming from last run with domain %s and index %s" % (domain, INDEX_LIST[index_pos]))
             resume_from_last_run = False
 
         # keep track of current session domain
@@ -223,8 +223,9 @@ for domain in domains:
             store_session_info('index', curr_index_pos)
 
         html_content = download_page(record)
+        print (record['url'], html_content)
+
         if html_content != "":
-            # print(html_content)
             record_filename = format_filename(record['url'])
             record_html_filepath = os.path.join(domain_data_dir, 'html', record_filename)
             if not record_html_filepath.endswith('.html'):
