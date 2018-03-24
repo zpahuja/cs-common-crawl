@@ -230,10 +230,9 @@ for domain in domains:
                 record_html_filepath += '.html'
             try:
                 fp = open(record_html_filepath, "w")
-            except IOError, err:
-                if err.code == 36:
-                    sys.stderr.write("[***] ERROR: Document skipped because file name is too long: %s\n" % record['url'])
-                    continue
+            except IOError:
+                sys.stderr.write("[***] ERROR: Document skipped because file name is too long: %s\n" % record['url'])
+                continue
 
             fp.write(html_content)
             fp.close()
