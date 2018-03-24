@@ -211,10 +211,9 @@ for domain in domains:
     for record, index_pos in record_list:
         # if resume from last run, then skip records until index_pos is same as prev_index
         if resume_from_last_run and index_pos < prev_index:
-            sys.stderr.write("[***] DEBUG Skipping index %s. Previous index from last run: %s." % (INDEX_LIST[index_pos], INDEX_LIST[prev_index]))
             continue
-        elif resume_index:
-            sys.stderr.write("[**] Resuming from last run with domain %s and index %s" % (domain, INDEX_LIST[index_pos]))
+        elif resume_from_last_run and resume_index:
+            sys.stderr.write("[**] Resuming from last run with domain %s and index %s\n" % (domain, INDEX_LIST[index_pos]))
             resume_index = False
 
         # keep track of current session domain
