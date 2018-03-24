@@ -178,6 +178,7 @@ if resume_from_last_run:
     prev_domain = get_session_info('domain')
     prev_index = int(get_session_info('index'))
     resume_domain = True
+    resume_index = True
 
 for domain in domains:
     if resume_from_last_run and resume_domain:
@@ -212,9 +213,9 @@ for domain in domains:
         if resume_from_last_run and index_pos < prev_index:
             print ("[***] DEBUG index position: %d and previous index from last run: %d" % (index_pos, prev_index))
             continue
-        else:
+        elif resume_index:
             sys.stderr.write("[**] Resuming from last run with domain %s and index %s" % (domain, INDEX_LIST[index_pos]))
-            resume_from_last_run = False
+            resume_index = False
 
         # keep track of current session domain
         if curr_index_pos != index_pos:
