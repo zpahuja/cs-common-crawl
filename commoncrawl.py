@@ -59,7 +59,7 @@ def search_domain(domain):
     """
     record_list = []
     seen_urls = {}
-    sys.stderr.write ("[*] Trying target domain: %s\n" % domain)
+    sys.stderr.write ("[**] Trying target domain: %s\n" % domain)
 
     for index in index_list:
         sys.stderr.write ("[*] Trying index %s\n" % index)
@@ -120,7 +120,7 @@ def download_page(record):
             warc, header, response = data.strip().split('\r\n\r\n', 2)
             status_code = int(header.split('\n', 1)[0].split()[1])
             if status_code == 200:
-                sys.stderr.write("[**] Retrieved %d bytes from %s\n" % (len(response), record['url']))
+                sys.stderr.write("[*] Retrieved %d bytes from %s\n" % (len(response), record['url']))
                 return response
 
             else:
@@ -211,7 +211,7 @@ for domain in domains:
     for record, index_pos in record_list:
         # if resume from last run, then skip records until index_pos is same as prev_index
         if resume_from_last_run and index_pos < prev_index:
-            print ("[***] DEBUG index position: %d and previous index from last run: %d" % (index_pos, prev_index))
+            sys.stderr.write("[***] DEBUG Skipping index %s. Previous index from last run: %s." % (INDEX_LIST[index_pos], INDEX_LIST[prev_index]))
             continue
         elif resume_index:
             sys.stderr.write("[**] Resuming from last run with domain %s and index %s" % (domain, INDEX_LIST[index_pos]))
