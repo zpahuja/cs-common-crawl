@@ -109,22 +109,33 @@ for domain in domains:
                     for start, end in matches[::-1]:
                         ctr -= 1
                         entity_hash2entity_value[ctr] = text[start:end]
-                        text = text[:start] + ' oentityo|' + str(ctr) + ' ' + text[end:]
+                        text = text[:start] + 'oentityo|' + str(ctr).zfill(6) + text[end:]
 
                 if text != content:
                     text = ' '.join(text.split())
                     text_begin = text
                     text_end = text
 
-                    for hash in entity_hash2entity_value.keys():
+                    entities = entity_hash2entity_value.keys()
+                    entities.sort(reverse=True)
+                    # print entities
+
+                    for hash in entities:
                         entity_name = entity_hash2entity_value[hash]
                         entity_name_split = entity_name.split()
-                        if len(entity_name_split) > 1:
-                            text_begin = text_begin.replace('oentityo|'+str(hash), 'oentityo|'+str(hash)+' '+' '.join(entity_name_split[1:]), 1)
-                            text_end = text_end.replace('oentityo|'+str(hash), ' '.join(entity_name_split[:-1]) + ' oentityo|'+str(hash)+' ', 1)
+                        entity_split_len = len(entity_name_split)
+                        if entity_split_len > 1:
+                            hash = str(hash).zfill(6)
+                            # sys.stderr.write("%s " % entity_name)
+                            # sys.stderr.write("Replacing begin %s with %s" % ('oentityo|'+str(hash), 'oentityo|'+str(hash)+' '+' '.join(entity_name_split[1:])))
+                            # sys.stderr.write("Replacing end %s with %s\n" % ('oentityo|'+str(hash), ' '.join(entity_name_split[:entity_split_len-1]) + ' oentityo|'+str(hash)))
+                            text_begin = text_begin.replace('oentityo|'+str(hash), 'oentityo|'+str(hash)+ entity_name[len(entity_name_split[0]):], 1)
+                            text_end = text_end.replace('oentityo|'+str(hash), entity_name[:len(entity_name)-len(entity_name_split[-1])] + 'oentityo|'+str(hash), 1)
 
                     annotation['_entity_'+entity+'_begin'] = text_begin
                     annotation['_entity_'+entity+'_end'] = text_end
+                    # if not (content.count(' ') == text_begin.count(' ') == text_end.count(' ')):
+                    #     sys.stderr.write('\n\n\n\t%s\n%d\n\n\n\t%s\n%d\n\n\n\t%s\n%d\n\n\n' % (content, content.count(' '), text_begin, text_begin.count(' '), text_end, text_end.count(' ')))
 
             annotation_path = os.path.join('data', domain, 'annotation.json')
             with open(annotation_path, "a") as annotation_file:
