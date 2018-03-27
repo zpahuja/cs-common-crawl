@@ -44,7 +44,11 @@ for domain in domains:
         print doc
         doc_path = os.path.join('data', domain, 'html', doc)
         with open(doc_path, 'rb') as html_file:
-            html = html_file.read().decode("utf8")
+            try:
+                html = html_file.read().decode("utf8")
+            except:
+                sys.stderr.write("[***] ERROR skipping %s because of codec decode error\n" % doc)
+                continue
             fp = open(html_filepath2md_filepath[doc_path], "w")
 
             h = html2text.HTML2Text()
