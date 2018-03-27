@@ -105,13 +105,18 @@ def download_page(record):
     resp = requests.get(prefix + record['filename'],
                         headers={'Range': 'bytes={}-{}'.format(offset, offset_end)})
 
-    # The page is stored compressed (gzip) to save space
-    # We can extract it using the GZIP library
-    raw_data = StringIO.StringIO(resp.content)
-    f = gzip.GzipFile(fileobj=raw_data)
+    try:
+        # The page is stored compressed (gzip) to save space
+        # We can extract it using the GZIP library
+        raw_data = StringIO.StringIO(resp.content)
+        f = gzip.GzipFile(fileobj=raw_data)
 
-    # What we have now is just the WARC response, formatted:
-    data = f.read()
+        # What we have now is just the WARC response, formatted:
+        data = f.read()
+
+    except IOError:
+        sys.stderr.write("[**] ERROR: Failed to read page %s\n" % record['url'])
+        return ""
 
     response = ""
 
